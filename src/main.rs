@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate rocket;
 mod hasher;
+mod store;
 
 use rocket::serde::{json::Json, Deserialize, Serialize};
 
@@ -15,7 +16,7 @@ fn index() -> &'static str {
 }
 
 #[post("/post", format = "json", data = "<payload>")]
-fn store(payload: Json<Payload>) -> Json<Payload> {
+fn store_url(payload: Json<Payload>) -> Json<Payload> {
     println!("{}", payload.link);
     payload
 }
@@ -28,5 +29,5 @@ fn retrieve(id: String) -> String {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, retrieve, store])
+    rocket::build().mount("/", routes![index, retrieve, store_url])
 }
