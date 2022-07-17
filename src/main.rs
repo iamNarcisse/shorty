@@ -1,7 +1,10 @@
 #[macro_use]
 extern crate rocket;
 mod hasher;
+mod service;
 mod store;
+
+use service::Service;
 
 use rocket::serde::{json::Json, Deserialize, Serialize};
 

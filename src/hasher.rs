@@ -11,7 +11,7 @@ impl Hasher {
         let harsh = Harsh::default();
         Hasher {
             generator: harsh,
-            id: 0,
+            id: 0, // in practice, should be replaced with a unique id Generator
         }
     }
 
@@ -27,6 +27,5 @@ impl Hasher {
 fn test_hasher() {
     let mut engine = Hasher::new();
     let id = engine.generate();
-
     println!("{}", id);
 }
