@@ -21,7 +21,6 @@ impl Service {
     pub fn store(&mut self, link: &str) -> String {
         let key = self.hasher.generate(); // Generator generates unique ids
         let result = self.store.save(&key, &link);
-        println!("{}", key);
         match result {
             Ok(value) => value,
             Err(e) => panic!("Failed to save link: {}", e),

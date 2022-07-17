@@ -18,8 +18,6 @@ impl Store {
             Err(_e) => panic!("REDIS_URL is required"),
         };
 
-        println!("{}", conn_string);
-
         let client = redis::Client::open(conn_string)?;
         let store = client.get_connection()?;
         Ok(Store { store })

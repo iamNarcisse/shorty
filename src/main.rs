@@ -15,10 +15,6 @@ struct Payload {
 
 #[get("/")]
 fn index() -> &'static str {
-    let mut srv = Service::new();
-    let id = srv.store("https://www.rust-lang.org");
-    println!("{}", id);
-
     "Hello, world!"
 }
 
