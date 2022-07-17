@@ -1,7 +1,10 @@
 #[macro_use]
 extern crate rocket;
 mod hasher;
+mod service;
 mod store;
+
+use service::Service;
 
 use rocket::serde::{json::Json, Deserialize, Serialize};
 
@@ -12,6 +15,10 @@ struct Payload {
 
 #[get("/")]
 fn index() -> &'static str {
+    let mut srv = Service::new();
+    let id = srv.store("https://www.rust-lang.org");
+    println!("{}", id);
+
     "Hello, world!"
 }
 
