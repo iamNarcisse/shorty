@@ -22,7 +22,7 @@ impl Service {
         let key = self.hasher.generate(); // Generator generates unique ids
         let result = self.store.save(&key, &link);
         match result {
-            Ok(value) => value,
+            Ok(_) => key, // Return key
             Err(e) => panic!("Failed to save link: {}", e),
         }
     }
@@ -41,5 +41,5 @@ fn test_service() {
     let mut srv = Service::new();
     let id = srv.store("https://www.rust-lang.org");
     let result = srv.retrieve("gY");
-    println!("{:?}", result);
+    println!("{:?}, {:?}", id, result);
 }
