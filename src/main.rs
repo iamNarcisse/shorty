@@ -4,13 +4,21 @@ mod hasher;
 mod service;
 mod store;
 
-use service::Service;
-
+use rocket::http::Status;
+use rocket::response::status::Custom;
 use rocket::serde::{json::Json, Deserialize, Serialize};
+use rocket::State;
+use service::Service;
+use std::sync::RwLock;
 
 #[derive(Deserialize, Serialize)]
 struct Payload {
-    link: String,
+    url: String,
+}
+
+#[derive(Deserialize, Serialize)]
+struct ErrorResponse {
+    message: String,
 }
 
 #[get("/")]
@@ -18,19 +26,38 @@ fn index() -> &'static str {
     "Hello, world!"
 }
 
-#[post("/post", format = "json", data = "<payload>")]
-fn store_url(payload: Json<Payload>) -> Json<Payload> {
-    println!("{}", payload.link);
-    payload
+#[post("/shorten", format = "json", data = "<payload>")]
+fn store_url(srv: &State<RwLock<Service>>, payload: Json<Payload>) -> Json<Payload> {
+    let mut service = srv.write().unwrap();
+    let id = service.store(&payload.url);
+    Json(Payload { url: id })
 }
 
 #[get("/<id>")]
-fn retrieve(id: String) -> String {
-    format!("{}", id);
-    id
+async fn retrieve(
+    srv: &State<RwLock<Service>>,
+    id: String,
+) -> Result<Json<Payload>, Custom<String>> {
+    let mut service = srv.write().unwrap();
+
+    let url = match service.retrieve(&id) {
+        Some(value) => value,
+        None => {
+            return Err(Custom(
+                Status::BadRequest,
+                "The provided link does not exist".to_string(),
+            ))
+        }
+    };
+
+    Ok(Json(Payload { url }))
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, retrieve, store_url])
+    let srv = Service::new();
+    let service = RwLock::new(srv);
+    rocket::build()
+        .manage(service)
+        .mount("/", routes![index, retrieve, store_url])
 }
