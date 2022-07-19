@@ -4,15 +4,21 @@ mod hasher;
 mod service;
 mod store;
 
-use service::Service;
-
+use rocket::http::Status;
+use rocket::response::status::Custom;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::State;
+use service::Service;
 use std::sync::RwLock;
 
 #[derive(Deserialize, Serialize)]
 struct Payload {
     url: String,
+}
+
+#[derive(Deserialize, Serialize)]
+struct ErrorResponse {
+    message: String,
 }
 
 #[get("/")]
@@ -24,21 +30,27 @@ fn index() -> &'static str {
 fn store_url(srv: &State<RwLock<Service>>, payload: Json<Payload>) -> Json<Payload> {
     let mut service = srv.write().unwrap();
     let id = service.store(&payload.url);
-    println!("{}", id);
     Json(Payload { url: id })
 }
 
 #[get("/<id>")]
-async fn retrieve(srv: &State<RwLock<Service>>, id: String) -> String {
+async fn retrieve(
+    srv: &State<RwLock<Service>>,
+    id: String,
+) -> Result<Json<Payload>, Custom<String>> {
     let mut service = srv.write().unwrap();
 
-    match service.retrieve(&id) {
+    let url = match service.retrieve(&id) {
         Some(value) => value,
-        None => "".to_string(),
+        None => {
+            return Err(Custom(
+                Status::BadRequest,
+                "The provided link does not exist".to_string(),
+            ))
+        }
     };
 
-    format!("{}", id);
-    id
+    Ok(Json(Payload { url }))
 }
 
 #[launch]
